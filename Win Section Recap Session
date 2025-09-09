@@ -1,0 +1,160 @@
+This document represents a recap of the progression of trivia and subscription modules
+
+# Session Outline
+
+16falsenonelisttrue
+
+---
+
+# Pre-pointing and seperation
+
+---
+
+## I. Recap of Trivia
+
+### A. Requirements : [Trivia Requirements](https://netorgft8913976-my.sharepoint.com/:w:/g/personal/may%5Fmagdy%5Fgrinta-group%5Fcom/Eb3%5F3Kxq7rZKlQKYkxxdrbEBBqzMCZ%5FGsehXwIJbV7H6Vw?e=cTemsY&nav=eyJoIjoiMTkyOTAxOTAwOCJ9) \[Pages 45 - 48\]
+
+### B. Design and implementation : 
+
+####   
+Entry point
+
+* Trivia entry point is through the win tab
+* Screen data and games are received through the “Get Games” API
+* Selected game check for the user type access and the coins threshold
+* If user pass the type access, “Get User Game” API is then called to check if the user already played this game or not. In case the user already played this game a pop up is displayed
+
+APIs used in this screen :   
+Get Games   
+Get User Game 
+
+---
+
+* “Get Game” API is called in this screen to draw the screen and save the game data moving into the beginning of the game
+* A check is made if the game has a promo code in this case it navigates to the promo code screen shown below, if not the user moves directly into the game
+* In the promo code screen, the user enters a promo code and the API “Validate Promo Code” is used to ensure the validity of the user’s promo code
+
+APIs used in these screens :   
+Get Game 
+
+Validate Promo Code 
+
+---
+
+#### Game start
+
+* The game then start with a set of 5 questions that the user should answer successfully
+* In case of success or failure an API “Submit User Game” is called to submit the result of the user
+
+Submit User Game 
+
+---
+
+#### Game end
+
+* The user is then directed to the win or lose screens and no APIs are called here, just static screens
+
+---
+
+## II. Recap of Gift Game
+
+### A. Requirements : [Trivia Requirements](https://netorgft8913976-my.sharepoint.com/:w:/g/personal/may%5Fmagdy%5Fgrinta-group%5Fcom/Eb3%5F3Kxq7rZKlQKYkxxdrbEBBqzMCZ%5FGsehXwIJbV7H6Vw?e=cTemsY&nav=eyJoIjoiMTkyOTAxOTAwOCJ9) \[Pages 38 - 45\]
+
+### B. Design and implementation : 
+
+#### Entry point
+
+* Gift game entry point is through home cards, no APIs calls related to the gift game is called in home. The card just redirects to the beginning gift game flow passing only the game ID that is presented in the payload of the card in the homepage
+
+---
+
+* In this screen at first an API called is made “Get Subscription Gift Game By ID” to acquire the game and the necessary details needed to draw the screen (i.e. images and descriptions)
+* Another API call “Get Subscription Gift User Games” is made upon clicking on the “continue” button which retrieve the Gift Game Result, to check eligibility cases, if the user played this game before and if he/she already redeemed the gift
+
+Get Subscription Gift Game By Id 
+
+Get Subscription Gift User Games 
+
+---
+
+#### Game Sets
+
+* A screen that draw the available sets of the gift game, upon selecting the user get redirected to the game start screen with the game id and the set id to start the game
+
+---
+
+#### Game start
+
+* The game then start with a set of 5 questions that the user should answer successfully
+* In case of success or failure an API “Submit User Subscription Game Result” is called to submit the result of the user
+
+Submit User Subscription Game Result 
+
+---
+
+#### Game end
+
+* The end game has multiple scenarios :  
+A. The user wins and eligible to redeem a gift  
+B. The user loses and the game has a game over gift  
+C. The user loses and the game has no game over gift  
+D. The user didn’t choose an answer, time is up and the game has a game over gift  
+E. The user didn’t choose an answer, time is up and the game has no game over gift
+* In case of gift redeem an API is called “Redeem Subscription Game Gift” and user is redirected to the gift code screen upon API succession
+
+Redeem Subscription Game Gift 
+
+---
+
+#### Gift Redeem
+
+* The gift code screen display the code that the user redeemed and it has multiple cases :  
+A. Gift code displayed and the user can redeem it on certain store that is stated in the title and description presented in the Game Set model  
+B. Gift code available, displayed and an external usage link is presented for the user  
+C. Gift code is unavailable and is not displayed to the user
+
+---
+
+## III. Similarities and challenges  
+
+#### Entry
+
+---
+
+#### Game start
+
+---
+
+#### End game
+
+---
+
+#### Pre-pointing flow chart
+
+---
+
+# Post pointing
+
+---
+
+## IV. Pointing addition
+
+* The addition of the pointing system complicated the whole module as it added multiple scenarios to the trivia and gift game :
+* The added screens in the trivia module :  
+1\. Insufficient coin balance  
+2\. Gift redeem with coins
+* The added screens in the gift game module :  
+1\. Insufficient coin balance  
+2\. Gift redeem with coins  
+3\. Lose redeem with coins  
+4\. Time up redeem with coins
+
+---
+
+## V. Trivia and Gift Game Separation
+
+#### Trivia post separation
+
+---
+
+#### Gift game post separation
