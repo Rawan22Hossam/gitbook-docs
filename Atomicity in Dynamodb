@@ -1,0 +1,64 @@
+#### Overview
+
+This document discusses the atomicity in dynamodb issue when there is data that needs to be updated or inserted for the same user in multiple tables and ensure that both operations were done successfully to ensure data consistency and integrity. 
+
+There is an AWS DynamoDB write operation approach for such an issue: `TransactWriteItems` were we include in this operation the needed operations like Put, Update, Delete and either all operations are done or none at all.
+
+Here is an overview for it:
+
+**Usage Example:**
+
+<!\[CDATA\[dynamodbClient.transact\_write\_items( TransactItems=\[ { 'Update': { 'TableName': 'userCoinBalance', 'Key': { 'UserUUID': {'S': userUUID} }, 'UpdateExpression': 'SET balance = :newBalance', 'ExpressionAttributeValues': { ':newBalance': {'N': newBalance} } } }, { 'Put': { 'TableName': 'userCoinHistory', 'Item': historyRecord } } \] )\]\]>
+
+**Benefits:**
+
+* **Atomicity**: Ensures both operations for the user either succeed or fail together, maintaining data consistency.
+* **Consistency**: Operations are strongly consistent, with updates immediately visible after the transaction.
+* **Simplicity**: The transaction logic is handled in one place, reducing complexity and potential for errors.
+
+**Drawbacks:**
+
+* **Performance**: Transactions can be slower due to the overhead of ensuring atomicity and consistency.
+* **Cost**: Higher costs due to increased write capacity units (WCUs) and transactional overhead.
+* **Limitations**: Transactions are limited to 25 operations per request.
+
+The `TransactWriteItems` should be used where atomicity is critical. However there would be some compromise in terms of cost and performance. It might be a good practice for data integrity on a small scale or handling a singe event.
+
+However, for handling batches, there would be the limitation of the 25 operations per request which will be around handling 12 users(with 2 operations each) per request and for sure the cost issue that would be the double since the operation in `TransactWriteItems` is calculated as 2 WCUs.
+
+ Here is a quick overview for the `batch_writer`:
+
+#### Batch Writes 
+
+`BatchWriter` allows for high-throughput writes but does not ensure atomicity. It is optimized for bulk data ingestion.
+
+##### **Advantages:**
+
+* **Performance**: Batch operations are optimized for high throughput and are generally faster than transactions.
+* **Scalability**: Better suited for large-scale data ingestion as it handles retries and parallelism efficiently.
+* **Cost**: Lower costs compared to transactions as they do not incur the overhead of ensuring atomicity.
+
+**Drawbacks:**
+
+* **Atomicity**: Lack of atomicity means that partial failures can leave your data in an inconsistent state.
+* **Consistency**: While batch writes are eventually consistent, they may not be immediately visible across all operations.
+
+#### Detailed Cost Comparison
+
+| Aspect                     | Transactions (TransactWriteItems)                         | Batch Writes (BatchWriteItem)                        |
+| -------------------------- | --------------------------------------------------------- | ---------------------------------------------------- |
+| **WCUs per Operation**     | 2 WCUs per write operation (Put, Update, Delete)          | 1 WCU per write operation (Put, Delete)              |
+| **Monthly Cost (Example)** | Double the cost                                           |                                                      |
+| **Overhead**               | Higher due to atomicity and consistency guarantees        | Lower, optimized for high throughput                 |
+| **Retries**                | May incur additional costs if transactions fail           | Handled efficiently, but retries may add cost        |
+| **Use Case Suitability**   | Critical consistency, financial operations, small batches | Bulk data ingestion, high performance, large batches |
+
+#### Conclusion
+
+* **Transactions** :  
+   * Higher costs and performance overhead.  
+   * Essential for ensuring data consistency and atomicity.  
+   * Best for scenarios where data integrity is critical.
+* **Batch Writes** :  
+   * Lower costs and optimized for performance.  
+   * Suitable for bulk data ingestion with occasional inconsistencies.
