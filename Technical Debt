@@ -1,0 +1,34 @@
+| **Topic**                                                                        | **Priority** | **Complexity** |
+| -------------------------------------------------------------------------------- | ------------ | -------------- |
+| Merge payment methods                                                            | Medium       | High           |
+| Switch to EventBridge Schedules for renewal transactions                         | Medium       | Medium         |
+| Refactor and Enhance Game and Subscription Game Logs -- localization part        | Medium       | Low            |
+| Vote Schedulers FT-4259369e828d-9b72-3221-969f-abc0a1346a9eSystem Jira           | Medium       | Low            |
+| Match Section EnhancementsFT-4224369e828d-9b72-3221-969f-abc0a1346a9eSystem Jira | Low          | Medium         |
+| Vote Unit tests refactor                                                         | Medium       | Medium         |
+
+#### Merge payment methods: 
+
+There is a gap in wallet in manage subscription flow  
+update asset updates the `subscriptionPaymentMethod` method only  
+while the update subscription which is part of the mng sub step function flow updates the `subscriptionPayementMethod` with the payment Information json object.  
+sometimes the call to the step function doesn't happen (originally from web) (edited)when this happens the step function is not invoked thus no record is added to the `paymentMethod` history table and the subscriptionPaymentMethod is not updated (except for the method which is updated from the update asset service) but the amount is the same way there is a service to just update the `subscriptionPaymentMethod` only? to handle the requirement of changing the payment method even if the payment is not completed. Example: someone changed from card to aman but still didn't complete the aman payment. His `subscriptionPaymentMethod` should be changed to aman)  
+then:  
+Handle all the payment methods (`card`,`wallet`,`aman`) in the same way:  
+After receiving a callback notification invoke a step function that executes the following step:
+
+1. A new service update asset (fully with `subscriptionPaymentMethod`) step
+2. add payment method step
+3. push notification step ( here we have the issue of passing the variables for the push notification function) (check last comment)
+4. invoice step
+5. blockchain step
+
+\=======  
+For push notifications, I recommend changing the input parameters format to make it easy to get invoked from several services (lambda or step function) (edited)
+
+comments: 
+
+A function to only update the payment method according to business requirements and the step function will handle the callbacks.
+
+Merge (insert card order, insert wallet order, insert aman order)  
+in one repo/ one API / yet multiple tables (edited) 
